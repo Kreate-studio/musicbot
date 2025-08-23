@@ -97,9 +97,3 @@ node index.js
 <h3>Additional Resources</h3>
 <p><strong>Video Tutorial:</strong> If you prefer a video guide, watch this YouTube tutorial [ Soon ].</p>
 <p><strong>Common Errors:</strong> Consult the errors section for troubleshooting.</p>
-
-<h3>Useful Files</h3>
-<ul>
-  <li><code>UI/banners/musicard.js</code>: Change, add, or remove music cards here.</li>
-  <li><code>UI/icons/musicicons.js</code>: Change, add, or remove music icons here.</li>
-</ul>
