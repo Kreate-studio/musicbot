@@ -1,17 +1,15 @@
 const mongoose = require('mongoose');
 
 const serverSchema = new mongoose.Schema({
-    _id: String, 
-    
+    _id: String,
 
     centralSetup: {
         enabled: Boolean,
         channelId: String,
-        embedId: String, 
+        embedId: String,
         vcChannelId: String,
         allowedRoles: [String]
     },
-    
 
     autoVcSetup: {
         enabled: Boolean,
@@ -19,13 +17,13 @@ const serverSchema = new mongoose.Schema({
         namingPattern: String,
         autoDelete: Boolean
     },
-    
 
     settings: {
         prefix: String,
         autoplay: Boolean,
         defaultVolume: Number,
-        djRole: String
+        djRole: String,
+        levelingChannelId: String
     }
 });
 

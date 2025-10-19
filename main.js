@@ -1,10 +1,12 @@
+const { startVoiceActivityUpdates } = require('./utils/voiceActivityUpdater');
+    const { userJoinTimestamps } = require('./events/voiceStateUpdate'); // Assuming events are in ./events
 /**
- * Ultimate Music Bot 
+ * Saphyran 
  * Comprehensive Discord Bot
  * 
  * @fileoverview Core application
  * @version 1.0.0
- * @author GlaceYT
+ * @author DLS
  */
 
 const DiscordClientFramework = require('discord.js').Client;
@@ -20,8 +22,6 @@ const ApplicationStatusManagementService = require('./utils/statusManager');
 const MemoryGarbageCollectionOptimizer = require('./utils/garbageCollector');
 const EnvironmentVariableConfigurationLoader = require('dotenv');
 const shiva = require('./shiva');
-// Initialize environment variable configuration subsystem
-EnvironmentVariableConfigurationLoader.config();
 
 /**
  * Discord Client Runtime Management System
@@ -306,7 +306,7 @@ class EventHandlerRegistrationService {
      */
     bindEventHandlers(clientInstance) {
         for (const eventHandlerInstance of this.discoveredEventHandlers) {
-            if (eventHandlerInstance.once) {
+ if (eventHandlerInstance.once) {
                 clientInstance.once(eventHandlerInstance.name, (...eventArguments) => 
                     eventHandlerInstance.execute(...eventArguments, clientInstance));
             } else {
@@ -315,8 +315,13 @@ class EventHandlerRegistrationService {
             }
             this.boundEventHandlers++;
         }
-        
-        return {
+        const { startVoiceActivityUpdates } = require('./utils/voiceActivityUpdater');
+        // Pass clientInstance to startVoiceActivityUpdates if needed
+        // const { userJoinTimestamps } = require('./events/voiceStateUpdate'); // Import userJoinTimestamps here if not available in startVoiceActivityUpdates scope
+        // startVoiceActivityUpdates(userJoinTimestamps); // Call after events are bound
+
+
+ return {
             totalEvents: this.boundEventHandlers
         };
     }

@@ -25,7 +25,7 @@ module.exports = {
                 .setColor(0x1DB954)
                 .setDescription(
                     'Need help or have questions? Join our official support server:\n' +
-                    '[Support Server](https://discord.gg/xQF9f9yUEM)\n\n' +
+                    '[Support Server](https://discord.gg/sanctyr)\n\n' +
                     'For direct inquiries, contact: **GlaceYT**\n\n' +
                     'Website: https://glaceyt.com'
                 )

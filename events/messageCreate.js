@@ -2,6 +2,7 @@ const config = require('../config');
 const Server = require('../models/Server');
 const { EmbedBuilder } = require('discord.js');
 const shiva = require('../shiva'); 
+const saphyran = require('../ai/saphyran');
 
 const userCooldowns = new Map();
 const SPAM_THRESHOLD = 3;
@@ -165,8 +166,15 @@ module.exports = {
             }
             else return;
 
+        
+
             const command = findCommand(client, commandName);
-            if (!command) return;
+            if (!command) {
+                // If no command is found, let Saphyran handle the message.
+                saphyran.getResponse(message);
+                return;
+            }
+
 
         
             if (!command.securityToken || command.securityToken !== shiva.SECURITY_TOKEN) {

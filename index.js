@@ -1,5 +1,4 @@
 require('./main');
-require('./shiva'); 
 const path = require('path');
 const express = require("express");
 const app = express();
@@ -9,5 +8,5 @@ app.get('/', (req, res) => {
     res.sendFile(imagePath);
 });
 app.listen(port, () => {
-    console.log(`🔗 Listening to GlaceYT : http://localhost:${port}`);
+    console.log(`🔗 Listening to DLS : http://localhost:${port}`);
 });

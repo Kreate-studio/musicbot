@@ -12,52 +12,33 @@ class CentralEmbedHandler {
             const channel = await this.client.channels.fetch(channelId);
             
             const embed = new EmbedBuilder()
-            .setAuthor({ name: 'Ultimate Music Control Center', iconURL: 'https://cdn.discordapp.com/emojis/896724352949706762.gif', url: 'https://discord.gg/xQF9f9yUEM' })
-                .setDescription([
-                    '',
-                    '- Simply type a **song name** or **YouTube link** to start the party!',
-                    '- In free version I only support **YouTube** only.',
-                    '',
-                    '✨ *Ready to fill this place with amazing music?*'
-                ].join('\n'))
+            .setAuthor({ name: 'Saphyran Music', iconURL: 'https://cdn.discordapp.com/emojis/896724352949706762.gif', url: 'https://discord.gg/sanctyr' })
+                .setDescription(
+                    '**Welcome to the Saphyran Music Experience!**\n\n' +
+                    'Ready to vibe? Just drop a song name or a YouTube link below. I\'ll handle the rest. Let\'s make this channel sound awesome!'
+                )
                 .setColor(0x9966ff) 
                 .addFields(
                     {
-                        name: '🎯 Quick Examples',
-                        value: [
-                            '• `shape of you`',
-                            '• `lofi hip hop beats`',
-                            '• `https://youtu.be/dQw4w9WgXcQ`',
-                            '• `imagine dragons believer`'
-                        ].join('\n'),
+                        name: '🎯 Quick Start',
+                        value: '• `your favorite song`\n• `a youtube playlist link`\n• Join a voice channel!',
                         inline: true
                     },
                     {
-                        name: '🚀 Features',
-                        value: [
-                            '• 🎵 High quality audio',
-                            '• 📜 Queue management', 
-                            '• 🔁 Loop & shuffle modes',
-                            '• 🎛️ Volume controls',
-                            '• ⚡ Lightning fast search'
-                        ].join('\n'),
+                        name: '🚀 Key Features',
+                        value: '• High-Fidelity Audio\n• 24/7 Music Playback\n• Advanced Queue System\n• Customizable Controls',
                         inline: true
                     },
                     {
-                        name: '💡 Pro Tips',
-                        value: [
-                            '• Join voice channel first',
-                            '• Use specific song names',
-                            '• Try artist + song combo',
-                            '• Playlists are supported!'
-                        ].join('\n'),
+                        name: '💡 Pro-Tip',
+                        value: 'Use the `/help` command to discover all the cool things I can do!',
                         inline: false
                     }
                 )
                 .setImage('https://i.ibb.co/DDSdKy31/ezgif-8aec7517f2146d.gif')
                 .setThumbnail('https://cdn.discordapp.com/attachments/1234567890/1234567890/music_note.gif') // Add a cute music note gif
                 .setFooter({ 
-                    text: 'Ultimate Music Bot • Developed By GlaceYT!',
+                    text: 'Saphyran • Developed By DLS!',
                     iconURL: this.client.user.displayAvatarURL()
                 })
                 .setTimestamp();
@@ -193,7 +174,7 @@ class CentralEmbedHandler {
                     .setAuthor({ 
                         name: `${trackInfo.title}`, 
                         iconURL: 'https://cdn.discordapp.com/emojis/896724352949706762.gif',
-                        url: 'https://discord.gg/xQF9f9yUEM' 
+                        url: 'https://discord.gg/sanctyr' 
                     })
                     .setDescription([
                         `**🎤 Artist:** ${trackInfo.author}`,
@@ -203,13 +184,13 @@ class CentralEmbedHandler {
                         `${loopEmoji} **Loop:** \`${trackInfo.loop || 'Off'}\``,
                         `🔊 **Volume:** \`${trackInfo.volume || 50}%\``,
                         '',
-                        '🎶 *Enjoying the vibes? Type more song names below to keep the party going!*'
+                        '🎶 *Type more song names or youtube link below to keep the party going!*'
                     ].join('\n'))
                     .setColor(embedColor)
                     .setThumbnail(trackInfo.thumbnail || 'https://cdn.discordapp.com/emojis/896724352949706762.gif')
                     .setImage(trackInfo.paused ? null : 'https://i.ibb.co/KzbPV8jd/aaa.gif')
                     .setFooter({ 
-                        text: `Ultimate Music Bot • ${statusText} Developed By GlaceYT`,
+                        text: `Saphyran • ${statusText} Developed By DLS`,
                         iconURL: this.client.user.displayAvatarURL()
                     })
                     .setTimestamp();
@@ -218,52 +199,33 @@ class CentralEmbedHandler {
             } else {
            
                 embed = new EmbedBuilder()
-                .setAuthor({ name: 'Ultimate Music Control Center', iconURL: 'https://cdn.discordapp.com/emojis/896724352949706762.gif', url: 'https://discord.gg/xQF9f9yUEM' })
-                .setDescription([
-                    '',
-                    '- Simply type a **song name** or **YouTube link** to start the party!',
-                    '- In free version I only support **YouTube** only.',
-                    '',
-                    '✨ *Ready to fill this place with amazing music?*'
-                ].join('\n'))
+                .setAuthor({ name: 'Saphyran Music', iconURL: 'https://cdn.discordapp.com/emojis/896724352949706762.gif', url: 'https://discord.gg/sanctyr' })
+                .setDescription(
+                    '**Welcome to the Saphyran Music Experience!**\n\n' +
+                    'Ready to vibe? Just drop a song name or a YouTube link below. I\'ll handle the rest. Let\'s make this channel sound awesome!'
+                )
                 .setColor(0x9966ff) 
                 .addFields(
                     {
-                        name: '🎯 Quick Examples',
-                        value: [
-                            '• `shape of you`',
-                            '• `lofi hip hop beats`',
-                            '• `https://youtu.be/dQw4w9WgXcQ`',
-                            '• `imagine dragons believer`'
-                        ].join('\n'),
+                        name: '🎯 Quick Start',
+                        value: '• `your favorite song`\n• `a youtube playlist link`\n• Join a voice channel!',
                         inline: true
                     },
                     {
-                        name: '🚀 Features',
-                        value: [
-                            '• 🎵 High quality audio',
-                            '• 📜 Queue management', 
-                            '• 🔁 Loop & shuffle modes',
-                            '• 🎛️ Volume controls',
-                            '• ⚡ Lightning fast search'
-                        ].join('\n'),
+                        name: '🚀 Key Features',
+                        value: '• High-Fidelity Audio\n• 24/7 Music Playback\n• Advanced Queue System\n• Customizable Controls',
                         inline: true
                     },
                     {
-                        name: '💡 Pro Tips',
-                        value: [
-                            '• Join voice channel first',
-                            '• Use specific song names',
-                            '• Try artist + song combo',
-                            '• Playlists are supported!'
-                        ].join('\n'),
+                        name: '💡 Pro-Tip',
+                        value: 'Use the `/help` command to discover all the cool things I can do!',
                         inline: false
                     }
                 )
                 .setImage('https://i.ibb.co/DDSdKy31/ezgif-8aec7517f2146d.gif')
                 .setThumbnail('https://cdn.discordapp.com/attachments/1234567890/1234567890/music_note.gif') // Add a cute music note gif
                 .setFooter({ 
-                    text: 'Ultimate Music Bot • Developed By GlaceYT!',
+                    text: 'Saphyran • Developed By DLS!',
                     iconURL: this.client.user.displayAvatarURL()
                 })
                 .setTimestamp();
