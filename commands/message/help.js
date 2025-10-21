@@ -1,31 +1,27 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const shiva = require('../../shiva');
-
-const COMMAND_SECURITY_TOKEN = shiva.SECURITY_TOKEN;
 
 module.exports = {
     name: 'help',
     aliases: ['h'],
-    description: 'List all available commands',
+    description: 'List all available commands with interactive category selection',
 
     async execute(message, args, client) {
-        if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
-            const embed = new EmbedBuilder()
-                .setDescription('❌ System core offline - Command unavailable')
-                .setColor('#FF0000');
-            return message.reply({ embeds: [embed] }).catch(() => {});
-        }
-
         try {
+            // Load message commands
             const msgCommandsPath = path.join(__dirname, '..', 'message');
             const msgFiles = fs.readdirSync(msgCommandsPath).filter(file => file.endsWith('.js'));
             const messageCommands = msgFiles.map(file => {
                 const cmd = require(path.join(msgCommandsPath, file));
-                return { name: cmd.name || 'Unknown', description: cmd.description || 'No description' };
+                return {
+                    name: cmd.name || 'Unknown',
+                    description: cmd.description || 'No description',
+                    aliases: cmd.aliases || []
+                };
             });
 
+            // Load slash commands
             const slashCommandsPath = path.join(__dirname, '..', 'slash');
             const slashFiles = fs.readdirSync(slashCommandsPath).filter(file => file.endsWith('.js'));
             const slashCommands = slashFiles.map(file => {
@@ -36,30 +32,76 @@ module.exports = {
                 };
             });
 
-            let description = `**🌐 Bot Stats:** Serving in **${client.guilds.cache.size}** servers.\n\n`;
+            // Categorize commands
+            const categories = {
+                '🎵 Music': {
+                    message: messageCommands.filter(cmd =>
+                        ['play', 'pause', 'resume', 'stop', 'skip', 'queue', 'nowplaying', 'shuffle', 'loop', 'volume', 'join', 'remove', 'jump', 'move', 'clear'].includes(cmd.name)
+                    ),
+                    slash: slashCommands.filter(cmd =>
+                        ['play', 'pause', 'resume', 'stop', 'skip', 'queue', 'shuffle', 'loop', 'volume', 'join', 'remove', 'autoplay'].includes(cmd.name)
+                    )
+                },
+                '🎤 TTS': {
+                    message: [],
+                    slash: slashCommands.filter(cmd =>
+                        ['setup-tts', 'select-tts-voice', 'toggle-tts', 'tts-status'].includes(cmd.name)
+                    )
+                },
+                '🤖 AI': {
+                    message: [],
+                    slash: slashCommands.filter(cmd =>
+                        ['setup-ai', 'setup-ai-key', 'setup-ai-favorites'].includes(cmd.name)
+                    )
+                },
+                '🏆 Leveling': {
+                    message: [],
+                    slash: slashCommands.filter(cmd =>
+                        ['level', 'leaderboard', 'setup-leveling', 'setup-level-card', 'customize-level-card', 'setup-leveling-customization', 'setup-leveling-image', 'setup-leveling-color', 'setup-leveling-messages'].includes(cmd.name)
+                    )
+                },
+                '⚙️ Utility': {
+                    message: messageCommands.filter(cmd =>
+                        ['ping', 'help', 'support'].includes(cmd.name)
+                    ),
+                    slash: slashCommands.filter(cmd =>
+                        ['clean-up', 'clear', 'setup-central', 'disable-central'].includes(cmd.name)
+                    )
+                }
+            };
 
-            description += `**💬 Message Commands [${messageCommands.length}]:**\n`;
-            messageCommands.forEach(cmd => {
-                description += `- \`!${cmd.name}\` - ${cmd.description}\n`;
-            });
+            // Create dropdown menu
+            const categoryOptions = Object.keys(categories).map(category => ({
+                label: category,
+                value: category,
+                description: `${categories[category].message.length + categories[category].slash.length} commands`,
+                emoji: category.split(' ')[0]
+            }));
 
-            description += `\n**⚡ Slash Commands [${slashCommands.length}]:**\n`;
-            slashCommands.forEach(cmd => {
-                description += `- \`/${cmd.name}\` - ${cmd.description}\n`;
-            });
+            const selectMenu = new StringSelectMenuBuilder()
+                .setCustomId('help_category_select')
+                .setPlaceholder('Select a category to view commands')
+                .addOptions(categoryOptions);
 
-            if (description.length > 4096) {
-                description = description.slice(0, 4093) + '...';
-            }
+            const row = new ActionRowBuilder().addComponents(selectMenu);
 
-            const embed = new EmbedBuilder()
-                .setTitle('📖 Saphyran - Command List')
+            // Create initial embed
+            const initialEmbed = new EmbedBuilder()
+                .setTitle('📖 Saphyran - Help Center')
                 .setColor(0x1DB954)
-                .setDescription(description)
-                .setFooter({ text: 'Developed by DLS | https://glaceyt.com' })
+                .setDescription(
+                    `**🌐 Bot Stats:** Serving in **${client.guilds.cache.size}** servers\n\n` +
+                    `**📊 Total Commands:** ${messageCommands.length + slashCommands.length}\n` +
+                    `**💬 Message Commands:** ${messageCommands.length}\n` +
+                    `**⚡ Slash Commands:** ${slashCommands.length}\n\n` +
+                    `**📂 Available Categories:**\n` +
+                    Object.keys(categories).map(cat => `${cat} (${categories[cat].message.length + categories[cat].slash.length} commands)`).join('\n') + '\n\n' +
+                    `Use the dropdown below to explore commands by category!`
+                )
+                .setFooter({ text: 'Saphyran • Developed by DLS' })
                 .setTimestamp();
 
-            await message.reply({ embeds: [embed] });
+            await message.reply({ embeds: [initialEmbed], components: [row] });
 
         } catch (error) {
             console.error('Help command error:', error);

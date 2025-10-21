@@ -1,20 +1,10 @@
 const { EmbedBuilder } = require('discord.js');
-const shiva = require('../../shiva');
-
-const COMMAND_SECURITY_TOKEN = shiva.SECURITY_TOKEN;
 
 module.exports = {
     name: 'ping',
     description: 'Check the bot\'s latency and uptime',
-    
-    async execute(message, args, client) {
-        if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
-            const embed = new EmbedBuilder()
-                .setDescription('❌ System core offline - Command unavailable')
-                .setColor('#FF0000');
-            return message.reply({ embeds: [embed] }).catch(() => {});
-        }
 
+    async execute(message, args, client) {
         try {
             const latency = Date.now() - message.createdTimestamp;
             const uptimeSeconds = Math.floor(client.uptime / 1000);

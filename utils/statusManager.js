@@ -4,22 +4,50 @@ class StatusManager {
     constructor(client) {
         this.client = client;
         this.currentInterval = null;
+        this.statusRotationInterval = null;
         this.isPlaying = false;
-        this.voiceChannelData = new Map(); 
+        this.voiceChannelData = new Map();
+        this.currentStatusIndex = 0;
+        this.musicStatusIndex = 0;
+        this.lastMusicUpdate = Date.now();
+
+        // Enhanced status messages with variety
+        this.defaultStatuses = [
+            { name: '🎵 Ready for music!', type: ActivityType.Watching },
+            { name: '🎸 Grooving to beats', type: ActivityType.Playing },
+            { name: '🎧 Listening to requests', type: ActivityType.Listening },
+            { name: '🎼 Music in multiple servers', type: ActivityType.Playing },
+            { name: '🎤 High-quality audio', type: ActivityType.Streaming },
+            { name: '🎶 Your personal DJ', type: ActivityType.Playing },
+            { name: '🔊 Crystal clear sound', type: ActivityType.Listening },
+            { name: '🎵 /play to start', type: ActivityType.Watching }
+        ];
+
+        // Dynamic music status formats
+        this.musicStatusFormats = [
+            '🎵 {title}',
+            '🎶 {title} by {author}',
+            '🎸 Playing: {title}',
+            '🎧 {title} [{duration}]',
+            '🎼 Now: {title}',
+            '🎵 {author} - {title}',
+            '🎶 Listening to {title}',
+            '🎸 {title} 🎸'
+        ];
     }
 
 
     async updateStatusAndVoice(guildId) {
         try {
-    
+
             const playerInfo = this.client.playerHandler.getPlayerInfo(guildId);
-            
+
             if (playerInfo && playerInfo.playing) {
-         
-                await this.setPlayingStatus(playerInfo.title);
+
+                await this.setPlayingStatus(playerInfo.title, playerInfo.author, playerInfo.duration);
                 await this.setVoiceChannelStatus(guildId, playerInfo.title);
             } else {
-           
+
                 await this.setDefaultStatus();
                 await this.clearVoiceChannelStatus(guildId);
             }
@@ -29,12 +57,36 @@ class StatusManager {
     }
 
 
-    async setPlayingStatus(trackTitle) {
+    async setPlayingStatus(trackTitle, author = '', duration = 0) {
         this.stopCurrentStatus();
         this.isPlaying = true;
-        
-        const activity = `🎵 ${trackTitle}`;
-     
+        this.lastMusicUpdate = Date.now();
+
+        // Format duration
+        const formatDuration = (ms) => {
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        };
+
+        const formattedDuration = duration > 0 ? formatDuration(duration) : '';
+
+        // Get rotating music status format
+        const format = this.musicStatusFormats[this.musicStatusIndex % this.musicStatusFormats.length];
+        this.musicStatusIndex++;
+
+        // Replace placeholders
+        let activity = format
+            .replace('{title}', trackTitle || 'Unknown Track')
+            .replace('{author}', author || 'Unknown Artist')
+            .replace('{duration}', formattedDuration);
+
+        // Ensure activity doesn't exceed Discord's 128 character limit
+        if (activity.length > 128) {
+            activity = activity.substring(0, 125) + '...';
+        }
+
         await this.client.user.setPresence({
             activities: [{
                 name: activity,
@@ -42,22 +94,49 @@ class StatusManager {
             }],
             status: 'online'
         });
-        
-    
+
+        // Dynamic status rotation while playing
         this.currentInterval = setInterval(async () => {
             if (this.isPlaying) {
-                await this.client.user.setPresence({
-                    activities: [{
-                        name: activity,
-                        type: ActivityType.Listening
-                    }],
-                    status: 'online'
-                });
-                console.log(`🔄 Status refreshed: ${activity}`);
+                // Rotate music status format every 45 seconds
+                if (Date.now() - this.lastMusicUpdate > 45000) {
+                    const newFormat = this.musicStatusFormats[this.musicStatusIndex % this.musicStatusFormats.length];
+                    this.musicStatusIndex++;
+
+                    let newActivity = newFormat
+                        .replace('{title}', trackTitle || 'Unknown Track')
+                        .replace('{author}', author || 'Unknown Artist')
+                        .replace('{duration}', formattedDuration);
+
+                    if (newActivity.length > 128) {
+                        newActivity = newActivity.substring(0, 125) + '...';
+                    }
+
+                    await this.client.user.setPresence({
+                        activities: [{
+                            name: newActivity,
+                            type: ActivityType.Listening
+                        }],
+                        status: 'online'
+                    });
+
+                    activity = newActivity;
+                    this.lastMusicUpdate = Date.now();
+                    console.log(`🔄 Music status rotated: ${activity}`);
+                } else {
+                    // Just refresh current status
+                    await this.client.user.setPresence({
+                        activities: [{
+                            name: activity,
+                            type: ActivityType.Listening
+                        }],
+                        status: 'online'
+                    });
+                }
             }
         }, 30000);
-        
-        console.log(`✅ Status locked to: ${activity}`);
+
+        console.log(`✅ Music status set: ${activity}`);
     }
 
 
@@ -269,18 +348,40 @@ class StatusManager {
     async setDefaultStatus() {
         this.stopCurrentStatus();
         this.isPlaying = false;
-        
-        const defaultActivity = `🎵 Ready for music!`;
-        
-        await this.client.user.setPresence({
-            activities: [{
-                name: defaultActivity,
-                type: ActivityType.Watching
-            }],
-            status: 'online'
-        });
-        
-        console.log(`✅ Status reset to: ${defaultActivity}`);
+
+        // Start rotating default statuses
+        this.startStatusRotation();
+
+        console.log(`✅ Status rotation started`);
+    }
+
+    async startStatusRotation() {
+        if (this.statusRotationInterval) {
+            clearInterval(this.statusRotationInterval);
+        }
+
+        const rotateStatus = async () => {
+            if (this.isPlaying) return; // Don't rotate if playing music
+
+            const status = this.defaultStatuses[this.currentStatusIndex % this.defaultStatuses.length];
+            this.currentStatusIndex++;
+
+            await this.client.user.setPresence({
+                activities: [{
+                    name: status.name,
+                    type: status.type
+                }],
+                status: 'online'
+            });
+
+            console.log(`🔄 Default status rotated: ${status.name}`);
+        };
+
+        // Initial status
+        await rotateStatus();
+
+        // Rotate every 2 minutes
+        this.statusRotationInterval = setInterval(rotateStatus, 120000);
     }
 
   
@@ -288,6 +389,10 @@ class StatusManager {
         if (this.currentInterval) {
             clearInterval(this.currentInterval);
             this.currentInterval = null;
+        }
+        if (this.statusRotationInterval) {
+            clearInterval(this.statusRotationInterval);
+            this.statusRotationInterval = null;
         }
     }
 

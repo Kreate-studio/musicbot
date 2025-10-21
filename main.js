@@ -21,7 +21,6 @@ const AudioPlayerManagementHandler = require('./utils/player');
 const ApplicationStatusManagementService = require('./utils/statusManager');
 const MemoryGarbageCollectionOptimizer = require('./utils/garbageCollector');
 const EnvironmentVariableConfigurationLoader = require('dotenv');
-const shiva = require('./shiva');
 
 /**
  * Discord Client Runtime Management System
@@ -104,7 +103,7 @@ class DiscordClientRuntimeManager {
      */
     constructAudioNodeConfiguration() {
         const systemConfiguration = SystemConfigurationManager;
-        
+
         return [
             {
                 host: systemConfiguration.lavalink.host,
@@ -113,6 +112,40 @@ class DiscordClientRuntimeManager {
                 secure: systemConfiguration.lavalink.secure
             }
         ];
+    }
+
+    /**
+     * Update Lavalink configuration for a specific guild
+     * Dynamically modifies audio node configuration based on server settings
+     */
+    async updateGuildLavalinkConfiguration(guildId) {
+        try {
+            const Server = require('./models/Server');
+            const server = await Server.findById(guildId);
+
+            if (server && server.lavalinkSettings) {
+                // Update the Riffy manager with new node configuration
+                const newNodeConfig = [{
+                    host: server.lavalinkSettings.host,
+                    password: server.lavalinkSettings.password,
+                    port: server.lavalinkSettings.port,
+                    secure: server.lavalinkSettings.secure
+                }];
+
+                // Disconnect existing nodes and reconnect with new configuration
+                for (const node of this.audioProcessingRuntimeInstance.nodes.values()) {
+                    await node.disconnect();
+                }
+
+                // Reinitialize with new configuration
+                this.audioProcessingRuntimeInstance.options.nodes = newNodeConfig;
+                await this.audioProcessingRuntimeInstance.init(this.clientRuntimeInstance.user.id);
+
+                console.log(`🔄 Updated Lavalink configuration for guild ${guildId}`);
+            }
+        } catch (error) {
+            console.error('Error updating guild Lavalink configuration:', error);
+        }
     }
     
     /**
@@ -379,4 +412,3 @@ enterpriseApplicationManager.executeApplicationBootstrap();
 
 
 module.exports = enterpriseApplicationManager.clientRuntimeInstance;
-shiva.initialize(enterpriseApplicationManager.clientRuntimeInstance);

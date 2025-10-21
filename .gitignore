@@ -1,10 +1,3 @@
-<<<<<<< Updated upstream
-.env
-=======
-<<<<<<< HEAD
-.env
-=======
->>>>>>> Stashed changes
 .env
 node_modules
 node modules
@@ -13,7 +6,3 @@ TODO.md
 .DS_Store
 .vscode
 .idea
-<<<<<<< Updated upstream
-=======
->>>>>>> 19756d2 (gitignore v2)
->>>>>>> Stashed changes

@@ -1,33 +1,26 @@
 const { EmbedBuilder } = require('discord.js');
-const shiva = require('../../shiva');
-
-const COMMAND_SECURITY_TOKEN = shiva.SECURITY_TOKEN;
 
 module.exports = {
     name: 'support',
     description: 'Get support server and contact information',
-    
-    async execute(message) {
-        if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
-            const embed = new EmbedBuilder()
-                .setDescription('❌ System core offline - Command unavailable')
-                .setColor('#FF0000');
-            return message.reply({ embeds: [embed] }).catch(() => {});
-        }
 
+    async execute(message) {
         try {
             const embed = new EmbedBuilder()
-                .setTitle('🛠️ Support & Contact')
+                .setTitle('💖 Support Saphyran')
                 .setColor(0x1DB954)
-                .setDescription(
-                    'Need help or have questions? Join our official support server:\n' +
-                    '[Support Server](https://discord.gg/sanctyr)\n\n' +
-                    'For direct inquiries, contact: **GlaceYT**\n\n' +
-                    'Website: https://glaceyt.com'
+                .addFields(
+                    { name: '📋 Getting Help', value: 'Use `/help` or `!help` to view available commands and features.\nCheck command descriptions for usage details.' },
+                    { name: '🐛 Report Issues', value: 'If you encounter bugs or errors, provide detailed information including:\n• Command used\n• Error message\n• Steps to reproduce' },
+                    { name: '💡 Feature Requests', value: 'Have ideas for new features? Share them with specifics on how they would improve the bot.' },
+                    { name: '👤 Contact Developer', value: 'For direct inquiries or support: **DLS**\nPlease be patient for responses.' },
+                    { name: '💰 Support the Bot', value: 'Help keep Saphyran running and growing! Your donations are greatly appreciated.\n[Ko-fi](https://ko-fi.com/sanctyr)' },
+                    { name: '🔗 Community Links', value: '[Website](https://sanctyr.space)\n[Discord Server](https://discord.gg/sanctyr)' }
                 )
+                .setDescription('Support Saphyran by reporting issues, suggesting features, or contributing financially. Your help keeps the bot alive and improving!')
                 .setTimestamp()
-                .setFooter({ text: 'Ultimate Music Bot • Developed by GlaceYT' });
-            
+                .setFooter({ text: 'Saphyran • Developed by DLS' });
+
             await message.reply({ embeds: [embed] });
         } catch (error) {
             console.error('Support command error:', error);

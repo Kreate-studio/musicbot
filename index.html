@@ -3,106 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DLS</title>
+    <title>Saphyran - The Ultimate Discord Music & AI Bot</title>
+    <meta name="description" content="Saphyran is a powerful Discord bot featuring music playback, AI chat, TTS, leveling system, and more. Elevate your Discord server experience!">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
-        body {
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            font-family: 'Press Start 2P', cursive;
-            color: #00ff00;
-            text-align: center;
+        :root {
+            --primary-color: #00AE86;
+            --secondary-color: #1a1a2e;
+            --accent-color: #16213e;
+            --text-primary: #ffffff;
+            --text-secondary: #b8c5d6;
+            --background-primary: #0f0f23;
+            --background-secondary: #1a1a2e;
+            --border-color: #2a2a4e;
+            --success-color: #00d4aa;
+            --warning-color: #ffd700;
+            --error-color: #ff6b6b;
+            --gradient-primary: linear-gradient(135deg, #00AE86 0%, #00d4aa 100%);
+            --gradient-secondary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow-primary: 0 10px 30px rgba(0, 174, 134, 0.3);
+            --shadow-secondary: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
-        h1, h2 {
+        * {
             margin: 0;
             padding: 0;
-            animation: flicker 1.5s infinite alternate;
+            box-sizing: border-box;
         }
 
-        h1 {
-            font-size: 3em;
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
         }
 
-        h2 {
-            font-size: 1.5em;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
-        @keyframes flicker {
-            0% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-            100% {
-                opacity: 1;
-            }
-        }
-
-        .hacking-theme {
-            position: absolute;
+        /* Navigation */
+        nav {
+            position: fixed;
             top: 0;
-            left: 0;
             width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: -1;
-            pointer-events: none;
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            transition: all 0.3s ease;
         }
 
-        .hacking-theme div {
+        nav.scrolled {
+            background: rgba(15, 15, 35, 0.98);
+            box-shadow: var(--shadow-secondary);
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 20px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-links a::after {
+            content: '';
             position: absolute;
-            width: 2px;
-            height: 100%;
-            background: #00ff00;
-            opacity: 0;
-            animation: moveAndFade 5s linear infinite;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background: var(--gradient-primary);
+            transition: width 0.3s ease;
         }
 
-        @keyframes moveAndFade {
-            0% {
-                transform: translateY(-100%);
-                opacity: 0;
-            }
-            50% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100%);
-                opacity: 0;
-            }
+        .nav-links a:hover::after {
+            width: 100%;
         }
 
-        .hacking-theme div:nth-child(odd) {
-            animation-duration: 4s;
+        .mobile-menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
         }
 
-        .hacking-theme div:nth-child(even) {
-            animation-duration: 6s;
-        }
-    </style>
-</head>
-<body>
-    <div class="content">
-        <h1>DLS</h1>
-        <h2>Saphyran @1.0.0 [ Free ]</h2>
-    </div>
-    <div class="hacking-theme">
-        <div style="left: 10%;"></div>
-        <div style="left: 20%;"></div>
-        <div style="left: 30%;"></div>
-        <div style="left: 40%;"></div>
-        <div style="left: 50%;"></div>
-        <div style="left: 60%;"></div>
-        <div style="left: 70%;"></div>
-        <div style="left: 80%;"></div>
-        <div style="left: 90%;"></div>
-    </div>
-</body>
-</html>
+        .mobile-menu-toggle span {
+            width: 25px;

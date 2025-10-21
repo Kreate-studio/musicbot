@@ -259,6 +259,24 @@ module.exports = {
                 }
 
                 if (response.text) {
+                    // Check if TTS is enabled and configured for this server
+                    const serverConfig = await Server.findById(message.guild.id);
+                    if (serverConfig?.ttsSettings?.enabled && serverConfig?.ttsSettings?.apiKey) {
+                        try {
+                            const TTSManager = require('../utils/tts');
+                            const ttsManager = new TTSManager(client);
+
+                            // Check if bot is in a voice channel
+                            const botMember = message.guild.members.me;
+                            if (botMember.voice?.channelId) {
+                                await ttsManager.speakMessage(message.guild.id, response.text, serverConfig.ttsSettings.voice, serverConfig.ttsSettings.model, serverConfig.ttsSettings.apiKey);
+                            }
+                        } catch (ttsError) {
+                            console.error('TTS Error:', ttsError.message);
+                            // Continue with normal reply if TTS fails
+                        }
+                    }
+
                     await message.reply(response.text);
                 }
                 if (response.query) {

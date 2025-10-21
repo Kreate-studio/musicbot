@@ -51,7 +51,7 @@ class Saphyran {
                 if (server && server.aiPersonality) {
                     const personality = server.aiPersonality;
                     serverPersonality = `
-Bio: ${personality.bio || 'A music-obsessed girl and DJ'}
+Bio: ${personality.bio || 'Saphyran is A music-obsessed girl and DJ'}
 Personality: ${personality.personality || 'Energetic, fun, and passionate about music'}
 Server Hierarchy: ${personality.serverHierarchy || 'Standard Discord server roles'}
 Server Lore: ${personality.serverLore || 'A community dedicated to music and fun'}

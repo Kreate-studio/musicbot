@@ -1,9 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const GarbageCollector = require('../../utils/garbageCollector');
 const config = require('../../config');
-const shiva = require('../../shiva');
-
-const COMMAND_SECURITY_TOKEN = shiva.SECURITY_TOKEN;
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -12,12 +9,6 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     async execute(interaction, client) {
-        if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
-            return interaction.reply({
-                content: '❌ System core offline - Command unavailable',
-                ephemeral: true
-            }).catch(() => {});
-        }
 
         if (!config.bot.ownerIds.includes(interaction.user.id)) {
             return interaction.reply({

@@ -1,21 +1,11 @@
 const { EmbedBuilder } = require('discord.js');
-const shiva = require('../../shiva');
-
-const COMMAND_SECURITY_TOKEN = shiva.SECURITY_TOKEN;
 
 module.exports = {
     name: 'skip',
     aliases: ['s', 'next', 'fs', 'forceskip'],
     description: 'Skip the current song',
-    
-    async execute(message, args, client) {
-        if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
-            const embed = new EmbedBuilder()
-                .setDescription('❌ System core offline - Command unavailable')
-                .setColor('#FF0000');
-            return message.reply({ embeds: [embed] }).catch(() => {});
-        }
 
+    async execute(message, args, client) {
         setTimeout(() => {
             message.delete().catch(() => {});
         }, 4000);

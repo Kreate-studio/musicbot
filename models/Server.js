@@ -59,6 +59,20 @@ const serverSchema = new mongoose.Schema({
     userLevelCards: {
         type: Object,
         default: {}
+    },
+
+    ttsSettings: {
+        enabled: Boolean,
+        apiKey: String,
+        model: String,
+        voice: String
+    },
+
+    lavalinkSettings: {
+        host: String,
+        port: Number,
+        password: String,
+        secure: Boolean
     }
 });
 
