@@ -9,7 +9,6 @@ module.exports = {
     name: 'help',
     aliases: ['h'],
     description: 'List all available commands',
-    securityToken: COMMAND_SECURITY_TOKEN,
 
     async execute(message, args, client) {
         if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
@@ -18,9 +17,6 @@ module.exports = {
                 .setColor('#FF0000');
             return message.reply({ embeds: [embed] }).catch(() => {});
         }
-
-        message.shivaValidated = true;
-        message.securityToken = COMMAND_SECURITY_TOKEN;
 
         try {
             const msgCommandsPath = path.join(__dirname, '..', 'message');

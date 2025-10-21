@@ -1,25 +1,11 @@
 const { EmbedBuilder } = require('discord.js');
-const shiva = require('../../shiva');
-
-const COMMAND_SECURITY_TOKEN = shiva.SECURITY_TOKEN;
 
 module.exports = {
     name: 'join',
     aliases: ['connect', 'summon'],
     description: 'Join your voice channel',
-    securityToken: COMMAND_SECURITY_TOKEN,
-    
+
     async execute(message, args, client) {
-        if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
-            const embed = new EmbedBuilder()
-                .setDescription('❌ System core offline - Command unavailable')
-                .setColor('#FF0000');
-            return message.reply({ embeds: [embed] }).catch(() => {});
-        }
-
-        message.shivaValidated = true;
-        message.securityToken = COMMAND_SECURITY_TOKEN;
-
         setTimeout(() => {
             message.delete().catch(() => {});
         }, 4000);

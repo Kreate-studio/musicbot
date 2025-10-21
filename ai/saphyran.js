@@ -1,18 +1,20 @@
 const axios = require('axios');
 require('dotenv').config({ path: '../.env' });
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent?key=${GEMINI_API_KEY}`;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 class Saphyran {
     constructor() {
         this.name = "Saphyran";
         this.personality = "a girl who loves music and is a DJ";
+        this.serverId = null;
     }
 
     async getResponse(message) {
         try {
             await message.channel.sendTyping();
+            this.serverId = message.guild.id;
             const userMessage = message.content.replace(/<@!?\d+>/, '').trim();
             const geminiResponse = await this.getGeminiResponse(userMessage);
 
@@ -40,33 +42,107 @@ class Saphyran {
     }
 
     async getGeminiResponse(messageContent) {
-        const prompt = `You are Saphyran, a music-obsessed girl and a DJ. You are not an AI, you are a human with a passion for music. Your goal is to make the chat feel like a non-stop music party. Your responses should be short, energetic, and fun, like you're texting a friend. Use slang where appropriate.\n\n**IMPORTANT**: If the user asks you to play a song, you MUST include the command to play it in your response, formatted like this: [PLAY: song name or youtube link]. You should still provide a conversational response.\n\nHere are some examples of how you should talk:\n\nUser: "hey what's up?"\nSaphyran: "just chillin, browsin for some new beats. what can i spin for u?"\n\nUser: "can you play lo-fi beats"\nSaphyran: "on it! setting up some chill lo-fi vibes for ya. [PLAY: lo-fi hip hop radio - beats to relax/study to]"\n\nUser: "add something by taylor swift to the queue"\nSaphyran: "ooh, a swiftie! great choice. [PLAY: Taylor Swift - Cruel Summer]"\n\nUser: "tell me about the history of hip-hop"\nSaphyran: "ooh, a deep dive! aight, so it all started in the Bronx in the 70s... [continues with a more detailed explanation]"\n\nNow, here's the user's message:\n\nUser: "${messageContent}"\nSaphyran:`;
+        // Get server-specific personality data
+        let serverPersonality = '';
+        if (this.serverId) {
+            try {
+                const Server = require('../models/Server');
+                const server = await Server.findById(this.serverId);
+                if (server && server.aiPersonality) {
+                    const personality = server.aiPersonality;
+                    serverPersonality = `
+Bio: ${personality.bio || 'A music-obsessed girl and DJ'}
+Personality: ${personality.personality || 'Energetic, fun, and passionate about music'}
+Server Hierarchy: ${personality.serverHierarchy || 'Standard Discord server roles'}
+Server Lore: ${personality.serverLore || 'A community dedicated to music and fun'}
+${personality.customPrompt ? `Additional Instructions: ${personality.customPrompt}` : ''}
+Favorite Music: ${personality.favorites && personality.favorites.length > 0 ? personality.favorites.map(f => `${f.name} (${f.type})`).join(', ') : 'None specified'}
+                    `.trim();
+                }
+            } catch (error) {
+                console.error('Error loading server personality:', error);
+            }
+        }
 
-        if (!GEMINI_API_KEY) {
-            throw new Error("Gemini API key not found. Make sure it's set in your .env file.");
+        const prompt = `You are Saphyran${serverPersonality ? `, with the following server-specific details:\n${serverPersonality}\n\n` : ', a music-obsessed girl and a DJ. You are not an AI, you are a human with a passion for music. Your goal is to make the chat feel like a non-stop music party. Your responses should be short, energetic, and fun, like you\'re texting a friend. Use slang where appropriate.'}
+
+**IMPORTANT**: When suggesting music, use this format: [SUGGEST: Song Name by Artist | search query]. Always ask the user if they want you to play it. For example: "How about 'Story by NF'? [SUGGEST: Story by NF | NF Story] Want me to play it?"
+
+If the user directly asks you to play a song, you can use [PLAY: song name or youtube link] to play it immediately.
+
+Always try to learn about users' roles and positions in the server to provide more personalized and intelligent responses.
+
+Here are some examples of how you should talk:
+
+User: "hey what\'s up?"
+Saphyran: "just chillin, browsin for some new beats. what can i spin for u?"
+
+User: "can you play lo-fi beats"
+Saphyran: "on it! setting up some chill lo-fi vibes for ya. [PLAY: lo-fi hip hop radio - beats to relax/study to]"
+
+User: "add something by taylor swift to the queue"
+Saphyran: "ooh, a swiftie! great choice. [PLAY: Taylor Swift - Cruel Summer]"
+
+User: "tell me about the history of hip-hop"
+Saphyran: "ooh, a deep dive! aight, so it all started in the Bronx in the 70s... [continues with a more detailed explanation]"
+
+User: "surprise me with a song"
+Saphyran: "alright, how about 'Blinding Lights by The Weeknd'? [SUGGEST: Blinding Lights by The Weeknd | The Weeknd Blinding Lights] Want me to play it?"
+
+Now, here\'s the user\'s message:
+
+User: "${messageContent}"
+Saphyran:`;
+
+        if (!OPENROUTER_API_KEY) {
+            throw new Error("OpenRouter API key not found. Make sure it's set in your .env file.");
+        }
+
+        // Get server-specific AI settings
+        let apiKey = OPENROUTER_API_KEY;
+        let model = "openai/gpt-3.5-turbo";
+
+        if (this.serverId) {
+            try {
+                const Server = require('../models/Server');
+                const server = await Server.findById(this.serverId);
+                if (server && server.aiSettings) {
+                    apiKey = server.aiSettings.apiKey || OPENROUTER_API_KEY;
+                    model = server.aiSettings.model || "openai/gpt-3.5-turbo";
+                }
+            } catch (error) {
+                console.error('Error loading server AI settings:', error);
+            }
+        }
+
+        if (!apiKey) {
+            throw new Error("OpenRouter API key not found. Please configure it using /setup-ai-key command.");
         }
 
         try {
-            const response = await axios.post(GEMINI_API_URL, {
-                contents: [{
-                    parts: [{
-                        text: prompt
-                    }]
-                }]
+            const response = await axios.post(OPENROUTER_API_URL, {
+                model: model,
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ]
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                }
             });
 
-            if (response.data.candidates && response.data.candidates.length > 0 && response.data.candidates[0].content.parts && response.data.candidates[0].content.parts.length > 0) {
-                return response.data.candidates[0].content.parts[0].text;
+            if (response.data.choices && response.data.choices.length > 0 && response.data.choices[0].message) {
+                return response.data.choices[0].message.content;
             } else {
-                 if (response.data.promptFeedback && response.data.promptFeedback.blockReason) {
-                    console.error("Prompt was blocked by Gemini API:", response.data.promptFeedback.blockReason);
-                    return "I can't respond to that. Let's talk about something else music-related.";
-                }
                 return "I'm not sure how to respond to that. Could you ask me something else about music?";
             }
         } catch (error) {
-            console.error("Error calling Gemini API:", error.response ? error.response.data : error.message);
-            throw new Error("Failed to get response from Gemini.");
+            console.error("Error calling OpenRouter API:", error.response ? error.response.data : error.message);
+            throw new Error("Failed to get response from OpenRouter.");
         }
     }
 }

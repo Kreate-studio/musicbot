@@ -17,7 +17,6 @@ module.exports = {
                     { name: 'Queue', value: 'queue' }
                 )
         ),
-    securityToken: COMMAND_SECURITY_TOKEN,
 
     async execute(interaction, client) {
         if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
@@ -26,9 +25,6 @@ module.exports = {
                 .setColor('#FF0000');
             return interaction.reply({ embeds: [embed], ephemeral: true }).catch(() => {});
         }
-
-        interaction.shivaValidated = true;
-        interaction.securityToken = COMMAND_SECURITY_TOKEN;
 
         await interaction.deferReply();
 

@@ -46,8 +46,8 @@ function calculateXP(durationInSeconds) {
 
 function calculateLevel(xp) {
   // Implement your level calculation logic here
-  // This is a simple example, you might want a more complex formula
-  return Math.floor(0.1 * Math.sqrt(xp)) + 1; // Example: logarithmic scaling
+  // Changed to linear scaling: level up every 50 XP
+  return Math.floor(xp / 50) + 1;
 }
 
 // Function to notify user of level up (implementation depends on your bot framework)
@@ -59,12 +59,37 @@ function notifyLevelUp(userId, newLevel) {
 }
 
 // Function to create a level-up embed
-function createLevelUpEmbed(member, newLevel) {
+async function createLevelUpEmbed(member, newLevel, guildId) {
   const { EmbedBuilder } = require('discord.js');
-  return new EmbedBuilder()
-    .setColor('#00ff00')
-    .setDescription(`🎉 Congratulations ${member.user.username}! You leveled up to level **${newLevel}**!`)
+  const Server = require('../models/Server');
+
+  const server = await Server.findOne({ _id: guildId });
+  const embedColor = server?.settings?.levelingEmbedColor || '#00ff00';
+  const notificationImage = server?.settings?.levelingNotificationImage || guild.iconURL({ dynamic: true, size: 512 });
+  const defaultMessages = [
+    '🎉 Congratulations {user}! You leveled up to level **{level}**!',
+    '🚀 {user} just reached level **{level}**! Keep it up!',
+    '⭐ Amazing! {user} leveled up to **{level}**!',
+    '🎊 {user} is now level **{level}**! Fantastic job!',
+    '🌟 {user} leveled up to **{level}**! You\'re on fire!'
+  ];
+
+  const messages = server?.settings?.levelingMessages && server.settings.levelingMessages.length > 0
+    ? server.settings.levelingMessages
+    : defaultMessages;
+
+  const randomMessage = messages[Math.floor(Math.random() * messages.length)]
+    .replace('{user}', member.user.username)
+    .replace('{level}', newLevel);
+
+  const embed = new EmbedBuilder()
+    .setColor(embedColor)
+    .setDescription(randomMessage)
+    .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }))
+    .setImage(notificationImage)
     .setTimestamp();
+
+  return embed;
 }
 
 // --- Example Usage in a Discord Bot Context ---

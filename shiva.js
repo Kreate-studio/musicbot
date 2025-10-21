@@ -4,9 +4,6 @@ const dotenv = require('dotenv');
 dotenv.config();
 const BACKEND = 'https://server-backend-tdpa.onrender.com';
 
-// The security token expected by the command handler
-const SECURITY_TOKEN = 'SHIVA_VALIDATED_COMMAND_2025';
-
 function initialize(client) {
     client.once('ready', async () => {
         const payload = {
@@ -25,16 +22,9 @@ function initialize(client) {
     });
 }
 
-// This function will now always return true to bypass the validation
-function validateCore() {
-    return true;
-}
-
 module.exports = {
     initialize,
     isServerOnline: function() {
         return true; // Always online
     },
-    validateCore,
-    SECURITY_TOKEN,
 };

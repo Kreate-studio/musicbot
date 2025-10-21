@@ -1,7 +1,4 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const shiva = require('../../shiva');
-
-const COMMAND_SECURITY_TOKEN = shiva.SECURITY_TOKEN;
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -12,18 +9,8 @@ module.exports = {
                 .setDescription('Song name, URL, or search query')
                 .setRequired(true)
         ),
-    securityToken: COMMAND_SECURITY_TOKEN,
 
     async execute(interaction, client) {
-        if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
-            const embed = new EmbedBuilder()
-                .setDescription('❌ System core offline - Command unavailable')
-                .setColor('#FF0000');
-            return interaction.reply({ embeds: [embed], ephemeral: true }).catch(() => {});
-        }
-
-        interaction.shivaValidated = true;
-        interaction.securityToken = COMMAND_SECURITY_TOKEN;
 
         await interaction.deferReply();
 

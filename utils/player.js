@@ -53,7 +53,7 @@ class PlayerHandler {
                     }
                 }
 
-                if (!player.playing && !player.paused) {
+                if (!player.playing && !player.paused && player.connected) {
                     await player.play();
                 }
 
@@ -72,7 +72,7 @@ class PlayerHandler {
                 track.info.requester = requester;
                 player.queue.add(track);
 
-                if (!player.playing && !player.paused) {
+                if (!player.playing && !player.paused && player.connected) {
                     await player.play();
                 }
 

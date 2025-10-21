@@ -12,6 +12,7 @@
   "dependencies": {
     "@discordjs/voice": "^0.18.0",
     "axios": "^1.12.2",
+    "canvas": "^3.2.0",
     "console": "^0.7.2",
     "crypto": "^1.0.1",
     "discord.js": "^14.22.0",

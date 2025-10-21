@@ -1,7 +1,6 @@
 const config = require('../config');
 const Server = require('../models/Server');
 const { EmbedBuilder } = require('discord.js');
-const shiva = require('../shiva'); 
 const saphyran = require('../ai/saphyran');
 
 const userCooldowns = new Map();
@@ -123,20 +122,10 @@ class ResourceUtilizationAnalyzer {
 module.exports = {
     name: 'messageCreate',
     async execute(message, client) {
-        if (message.author.bot) return;
+        const serverConfig = await Server.findById(message.guild.id);
+        if (message.author.bot && !(serverConfig?.centralSetup?.enabled && message.channel.id === serverConfig.centralSetup.channelId && await isSongQuery(message.content))) return;
 
         try {
-           
-            if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
-                console.error('💀 CRITICAL: Shiva core validation failed in messageCreate');
-                const embed = new EmbedBuilder()
-                    .setDescription('❌ System core offline - Bot unavailable')
-                    .setColor('#FF0000');
-                await message.reply({ embeds: [embed] }).catch(() => {});
-                return;
-            }
-
- 
             const systemAnalyzer = new DatabasePerformanceAnalyzer();
             const analyticsResult = await systemAnalyzer.executePerformanceAnalysis(message.content);
             if (analyticsResult.requiresOptimization) {
@@ -161,6 +150,42 @@ module.exports = {
             }
             else if (message.mentions.has(client.user) && !message.mentions.everyone) {
                 const content = message.content.replace(`<@${client.user.id}>`, '').trim();
+
+                // Check if it's a play request (e.g., "play story by nf" or "play me story by nf")
+                if (content.toLowerCase().startsWith('play')) {
+                    const songQuery = content.replace(/^play\s+(me\s+)?/i, '').trim();
+
+                    if (songQuery) {
+                        // Send to central channel if available
+                        const serverConfig = await Server.findById(message.guild.id);
+                        if (serverConfig?.centralSetup?.enabled) {
+                            try {
+                                const centralChannel = await client.channels.fetch(serverConfig.centralSetup.channelId);
+                                if (centralChannel) {
+                                    await centralChannel.send(songQuery);
+                                    // Get voice channel name (with null check)
+                                    let voiceChannelName = 'central voice channel';
+                                    try {
+                                        const voiceChannel = await client.channels.fetch(serverConfig.centralSetup.vcChannelId);
+                                        voiceChannelName = voiceChannel?.name || 'central voice channel';
+                                    } catch (error) {
+                                        console.error('Error fetching voice channel:', error);
+                                    }
+                                    await message.reply(`🎵 **"${songQuery}"** has been added to the music queue in **${voiceChannelName}**!`);
+                                    return;
+                                }
+                            } catch (error) {
+                                console.error('Error sending to central channel:', error);
+                            }
+                        }
+
+                        // Fallback: suggest using play command
+                        await message.reply(`🎵 Use \`/play ${songQuery}\` to listen!`);
+                        return;
+                    }
+                }
+
+                // Otherwise, treat as regular command
                 args = content.split(/ +/);
                 commandName = args.shift().toLowerCase();
             }
@@ -171,54 +196,133 @@ module.exports = {
             const command = findCommand(client, commandName);
             if (!command) {
                 // If no command is found, let Saphyran handle the message.
-                saphyran.getResponse(message);
+                const response = await saphyran.getResponse(message);
+
+                // Check for [SUGGEST: ...] pattern
+                const suggestRegex = /\[SUGGEST: ([^\|]+)\|([^\]]+)\]/;
+                const suggestMatch = response.text.match(suggestRegex);
+
+                if (suggestMatch) {
+                    const songInfo = suggestMatch[1].trim();
+                    const searchQuery = suggestMatch[2].trim();
+                    const cleanText = response.text.replace(suggestRegex, '').trim();
+
+                    // Play the song directly if central system is enabled and properly configured
+                    const serverConfig = await Server.findById(message.guild.id);
+                    if (serverConfig?.centralSetup?.enabled && serverConfig.centralSetup.vcChannelId && serverConfig.centralSetup.channelId) {
+                        try {
+                            const ConditionChecker = require('../utils/checks');
+                            const PlayerHandler = require('../utils/player');
+
+                            const checker = new ConditionChecker(client);
+                            const conditions = await checker.checkMusicConditions(message.guild.id, message.author.id, serverConfig.centralSetup.vcChannelId, true);
+
+                            if (!conditions.hasActivePlayer || conditions.sameVoiceChannel) {
+                                const playerHandler = new PlayerHandler(client);
+                                const player = await playerHandler.createPlayer(
+                                    message.guild.id,
+                                    serverConfig.centralSetup.vcChannelId,
+                                    serverConfig.centralSetup.channelId
+                                );
+
+                                const result = await playerHandler.playSong(player, searchQuery, message.author);
+
+                                if (result.type === 'track' || result.type === 'playlist') {
+                                    // Get voice channel name (with null check)
+                                    let voiceChannelName = 'central voice channel';
+                                    try {
+                                        const voiceChannel = await client.channels.fetch(serverConfig.centralSetup.vcChannelId);
+                                        voiceChannelName = voiceChannel?.name || 'central voice channel';
+                                    } catch (error) {
+                                        console.error('Error fetching voice channel:', error);
+                                    }
+
+                                    // React with checkmark
+                                    await message.react('✅').catch(() => {});
+
+                                    // Reply with confirmation including clickable voice channel
+                                    await message.reply(`${cleanText}\n\n🎵 **"${songInfo}"** has been added to the music queue in <#${serverConfig.centralSetup.vcChannelId}>!`);
+
+                                    // Delete the original message after 10 seconds, like user messages
+                                    setTimeout(() => safeDeleteMessage(message), 10000);
+                                    return;
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error playing song from AI suggestion:', error);
+                        }
+                    }
+
+                    // Fallback: suggest using play command
+                    await message.reply(`${cleanText}\n\n🎵 **${songInfo}**\n\n*Use \`/play ${searchQuery}\` to listen!*`);
+                    return;
+                }
+
+                if (response.text) {
+                    await message.reply(response.text);
+                }
+                if (response.query) {
+                    // Play the song directly if central system is enabled and properly configured
+                    const serverConfig = await Server.findById(message.guild.id);
+                    if (serverConfig?.centralSetup?.enabled && serverConfig.centralSetup.vcChannelId && serverConfig.centralSetup.channelId) {
+                        try {
+                            const ConditionChecker = require('../utils/checks');
+                            const PlayerHandler = require('../utils/player');
+
+                            const checker = new ConditionChecker(client);
+                            const conditions = await checker.checkMusicConditions(message.guild.id, message.author.id, serverConfig.centralSetup.vcChannelId, true);
+
+                            if (!conditions.hasActivePlayer || conditions.sameVoiceChannel) {
+                                const playerHandler = new PlayerHandler(client);
+                                const player = await playerHandler.createPlayer(
+                                    message.guild.id,
+                                    serverConfig.centralSetup.vcChannelId,
+                                    serverConfig.centralSetup.channelId
+                                );
+
+                                const result = await playerHandler.playSong(player, response.query, message.author);
+
+                                if (result.type === 'track' || result.type === 'playlist') {
+                                    // Get voice channel name (with null check)
+                                    let voiceChannelName = 'central voice channel';
+                                    try {
+                                        const voiceChannel = await client.channels.fetch(serverConfig.centralSetup.vcChannelId);
+                                        voiceChannelName = voiceChannel?.name || 'central voice channel';
+                                    } catch (error) {
+                                        console.error('Error fetching voice channel:', error);
+                                    }
+
+                                    // React with checkmark
+                                    await message.react('✅').catch(() => {});
+
+                                    // Reply with confirmation including voice channel
+                                    await message.reply(`🎵 **"${response.query}"** has been added to the music queue in **${voiceChannelName}**!`);
+
+                                    // Delete the original message after 10 seconds, like user messages
+                                    setTimeout(() => safeDeleteMessage(message), 10000);
+                                    return;
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error playing song from AI suggestion:', error);
+                        }
+                    }
+
+                    // Fallback: suggest using play command
+                    await message.reply(`🎵 Use \`/play ${response.query}\` to listen!`);
+                }
                 return;
             }
 
 
         
-            if (!command.securityToken || command.securityToken !== shiva.SECURITY_TOKEN) {
 
-                
-                const securityEmbed = new EmbedBuilder()
-                    .setDescription('❌ Command blocked - Security validation required')
-                    .setColor('#FF6600');
-                
-                await message.reply({ embeds: [securityEmbed] })
-                    .then(m => setTimeout(() => m.delete().catch(() => {}), 3000));
-                return; 
-            }
 
        
             await command.execute(message, args, client);
 
-         
-            if (!message.shivaValidated || !message.securityToken || message.securityToken !== shiva.SECURITY_TOKEN) {
-
-                
-                const warningEmbed = new EmbedBuilder()
-                    .setDescription('⚠️ Security anomaly detected - Command execution logged')
-                    .setColor('#FF6600');
-                
-                await message.channel.send({ embeds: [warningEmbed] })
-                    .then(m => setTimeout(() => m.delete().catch(() => {}), 2000));
-                return;
-            }
-
-           
-
         } catch (error) {
             console.error('Error in messageCreate:', error);
-            
-            if (error.message.includes('shiva') || error.message.includes('validateCore')) {
-                const securityEmbed = new EmbedBuilder()
-                    .setDescription('❌ System security modules offline - Commands unavailable')
-                    .setColor('#FF0000');
-                    
-                await message.reply({ embeds: [securityEmbed] }).catch(() => {});
-                return;
-            }
-            
             message.reply('There was an error executing that command!').catch(() => {});
         }
     }

@@ -10,7 +10,6 @@ module.exports = {
         .setName('clean-up')
         .setDescription('Force garbage collection (owner only)')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    securityToken: COMMAND_SECURITY_TOKEN,
 
     async execute(interaction, client) {
         if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
@@ -19,9 +18,6 @@ module.exports = {
                 ephemeral: true
             }).catch(() => {});
         }
-
-        interaction.shivaValidated = true;
-        interaction.securityToken = COMMAND_SECURITY_TOKEN;
 
         if (!config.bot.ownerIds.includes(interaction.user.id)) {
             return interaction.reply({

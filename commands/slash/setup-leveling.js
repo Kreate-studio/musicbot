@@ -1,8 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 const Server = require('../../models/Server'); // Assuming you have a Server model for guild settings
-const shiva = require('../../shiva');
 
-const COMMAND_SECURITY_TOKEN = shiva.SECURITY_TOKEN;
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('setup-leveling')
@@ -14,7 +12,6 @@ module.exports = {
 
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator), // Only administrators can use this command
-    securityToken: COMMAND_SECURITY_TOKEN,
 
     async execute(interaction) {
         const channel = interaction.options.getChannel('channel');
@@ -27,9 +24,6 @@ module.exports = {
                 { levelingChannelId: channel.id },
                 { upsert: true, new: true }
             );
-
-            interaction.shivaValidated = true;
-            interaction.securityToken = COMMAND_SECURITY_TOKEN;
 
             const embed = new EmbedBuilder()
                 .setColor('#00ff00')

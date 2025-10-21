@@ -1,9 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, ChannelType } = require('discord.js');
 const Server = require('../../models/Server');
 const CentralEmbedHandler = require('../../utils/centralEmbed');
-const shiva = require('../../shiva');
-
-const COMMAND_SECURITY_TOKEN = shiva.SECURITY_TOKEN;
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -19,18 +16,8 @@ module.exports = {
                 .setDescription('Role allowed to use central system (optional)')
                 .setRequired(false))
         .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
-    securityToken: COMMAND_SECURITY_TOKEN,
 
     async execute(interaction, client) {
-        if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
-            const embed = new EmbedBuilder()
-                .setDescription('❌ System core offline - Command unavailable')
-                .setColor('#FF0000');
-            return interaction.reply({ embeds: [embed], ephemeral: true }).catch(() => {});
-        }
-
-        interaction.shivaValidated = true;
-        interaction.securityToken = COMMAND_SECURITY_TOKEN;
 
         await interaction.deferReply({ ephemeral: true });
 

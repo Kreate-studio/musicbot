@@ -7,7 +7,6 @@ module.exports = {
     name: 'resume',
     aliases: ['continue', 'unpause', 'start'],
     description: 'Resume the paused music',
-    securityToken: COMMAND_SECURITY_TOKEN,
     
     async execute(message, args, client) {
         if (!shiva || !shiva.validateCore || !shiva.validateCore()) {
@@ -16,9 +15,6 @@ module.exports = {
                 .setColor('#FF0000');
             return message.reply({ embeds: [embed] }).catch(() => {});
         }
-
-        message.shivaValidated = true;
-        message.securityToken = COMMAND_SECURITY_TOKEN;
 
         setTimeout(() => {
             message.delete().catch(() => {});
